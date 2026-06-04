@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css">
+  
+  <style>
+    * {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    body {
+      padding: 30px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+    }
+    
+    .card {
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+      border: none;
+      border-radius: 12px;
+    }
+    
+    .card-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border-radius: 12px 12px 0 0 !important;
+      padding: 20px;
+    }
+    
+    .card-header h2 {
+      margin: 0;
+      font-weight: 700;
+      font-size: 28px;
+    }
+    
+    .form-label {
+      font-weight: 600;
+      color: #2c3e50;
+      margin-bottom: 8px;
+    }
+    
+    .form-control, .form-select {
+      border-radius: 8px;
+      border: 2px solid #e0e0e0;
+      padding: 10px 12px;
+      font-size: 15px;
+      transition: all 0.3s ease;
+    }
+    
+    .form-control:focus, .form-select:focus {
+      border-color: #667eea;
+      box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
+    
+    .select2-container--bootstrap-5 .select2-selection {
+      border-radius: 8px;
+      border: 2px solid #e0e0e0 !important;
+      height: auto;
+      padding: 4px;
+    }
+    
+    .select2-container--bootstrap-5 .select2-selection--single {
+      min-height: 40px;
+    }
+    
+    .select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered {
+      padding: 6px 0;
+      line-height: 1.5;
+    }
+    
+    .select2-container--bootstrap-5 .select2-selection--single .select2-selection__arrow {
+      top: 6px;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border: none;
+      border-radius: 8px;
+      padding: 12px 24px;
+      font-weight: 600;
+      font-size: 16px;
+      transition: all 0.3s ease;
+      margin-top: 10px;
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(102, 126, 234, 0.4);
+      background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    }
+    
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+    
+    .route-step {
+      padding: 12px 15px;
+      border-left: 4px solid #0d6efd;
+      margin-bottom: 8px;
+      background: #f8f9fa;
+      border-radius: 6px;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+    
+    .route-step.boarding {
+      border-left-color: #28a745;
+      background: #e8f5e9;
+      font-weight: 600;
+    }
+    
+    .route-step.arrival {
+      border-left-color: #dc3545;
+      background: #ffebee;
+      font-weight: 600;
+    }
+    
+    .route-step.interchange {
+      border-left-color: #ffc107;
+      background: #fff3cd;
+      font-weight: 600;
+    }
+    
+    .route-step.stop {
+      border-left-color: #17a2b8;
+      background: #e1f5fe;
+    }
+    
+    .summary-box {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 15px 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+    
+    .summary-item {
+      text-align: center;
+    }
+    
+    .summary-item-value {
+      font-size: 24px;
+      font-weight: 700;
+    }
+    
+    .summary-item-label {
+      font-size: 13px;
+      opacity: 0.9;
+      margin-top: 4px;
+    }
+    
+    .output-title {
+      color: #2c3e50;
+      font-weight: 700;
+      margin-bottom: 15px;
+      font-size: 20px;
+    }
+    
+    #output {
+      animation: slideIn 0.4s ease-out;
+    }
+    
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .loading {
+      display: none;
+      text-align: center;
+      margin-top: 15px;
+    }
+    
+    .spinner-border {
+      color: #667eea;
+    }
+    
+    .error-alert {
+      background: #ffebee;
+      border: 2px solid #dc3545;
+      color: #c62828;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 15px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container" style="max-width: 750px;">
+    <div class="card">
+      <div class="card-header">
+        <h2>🇸🇬 Singapore MRT Navigator</h2>
+      </div>
+      
+      <div class="card-body p-4">
+        <div class="mb-4">
+          <label class="form-label">📍 Source Station:</label>
+          <select id="src" class="form-select form-select-lg" style="width: 100%;">
+            <option value="">-- Select Source Station --</option>
+          </select>
+        </div>
+        
+        <div class="mb-4">
+          <label class="form-label">🎯 Destination Station:</label>
+          <select id="dest" class="form-select form-select-lg" style="width: 100%;">
+            <option value="">-- Select Destination Station --</option>
+          </select>
+        </div>
+        
+        <div class="mb-4">
+          <label class="form-label">⚙️ Routing Strategy:</label>
+          <select id="strategy" class="form-select">
+            <option value="time">⏱️ Shortest Travel Time</option>
+            <option value="interchanges">🔄 Minimum Interchanges</option>
+          </select>
+        </div>
+        
+        <button onclick="findRoute()" class="btn btn-primary w-100 btn-lg">
+          <span id="btnText">🚀 Find Best Route</span>
+        </button>
+        
+        <div class="loading" id="loading">
+          <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <p class="mt-2" style="color: #667eea; font-weight: 600;">Calculating route...</p>
+        </div>
+        
+        <div class="error-alert" id="errorAlert"></div>
+        
+        <div id="output" style="display: none; margin-top: 30px;">
+          <h4 class="output-title">📋 Optimal Route Summary</h4>
+          
+          <div class="summary-box">
+            <div class="summary-item">
+              <div class="summary-item-value" id="metric">--</div>
+              <div class="summary-item-label">Travel Time</div>
+            </div>
+            <div class="summary-item">
+              <div class="summary-item-value" id="changes">0</div>
+              <div class="summary-item-label">Line Changes</div>
+            </div>
+          </div>
+          
+          <h5 style="color: #2c3e50; font-weight: 700; margin-bottom: 12px;">Step-by-Step Directions:</h5>
+          <div id="pathDisplay"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+  
+  <script>
+    // Load station list on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      loadStations();
+    });
+
+    function loadStations() {
+      google.script.run.withSuccessHandler(function(result) {
+        if (result.error) {
+          showError(result.error);
+          return;
+        }
+
+        const stations = result.stations || [];
+        const srcSelect = document.getElementById('src');
+        const destSelect = document.getElementById('dest');
+
+        // Clear existing options (except the placeholder)
+        srcSelect.innerHTML = '<option value="">-- Select Source Station --</option>';
+        destSelect.innerHTML = '<option value="">-- Select Destination Station --</option>';
+
+        // Add station options
+        stations.forEach(station => {
+          const option1 = document.createElement('option');
+          option1.value = station;
+          option1.textContent = station;
+          srcSelect.appendChild(option1);
+
+          const option2 = document.createElement('option');
+          option2.value = station;
+          option2.textContent = station;
+          destSelect.appendChild(option2);
+        });
+
+        // Initialize Select2 with bootstrap theme
+        $('#src').select2({
+          theme: 'bootstrap-5',
+          placeholder: '-- Select Source Station --',
+          allowClear: true,
+          width: '100%'
+        });
+
+        $('#dest').select2({
+          theme: 'bootstrap-5',
+          placeholder: '-- Select Destination Station --',
+          allowClear: true,
+          width: '100%'
+        });
+
+      }).getGraphData();
+    }
+
+    function findRoute() {
+      const src = document.getElementById('src').value;
+      const dest = document.getElementById('dest').value;
+      const strategy = document.getElementById('strategy').value;
+
+      // Validation
+      if (!src || !dest) {
+        showError('Please select both source and destination stations.');
+        return;
+      }
+
+      if (src === dest) {
+        showError('Source and destination must be different stations.');
+        return;
+      }
+
+      // Show loading, hide previous output
+      document.getElementById('output').style.display = 'none';
+      document.getElementById('errorAlert').style.display = 'none';
+      document.getElementById('loading').style.display = 'block';
+      document.getElementById('btnText').textContent = '⏳ Calculating...';
+
+      // Call the server-side function
+      google.script.run.withSuccessHandler(function(result) {
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('btnText').textContent = '🚀 Find Best Route';
+
+        if (result.error) {
+          showError(result.error);
+          return;
+        }
+
+        // Display results
+        document.getElementById('metric').innerText = result.metric;
+        document.getElementById('changes').innerText = result.interchanges;
+
+        const pathDisplay = document.getElementById('pathDisplay');
+        pathDisplay.innerHTML = '';
+
+        result.path.forEach(function(step) {
+          const div = document.createElement('div');
+          div.className = 'route-step';
+
+          // Classify step based on content
+          if (step.includes('BOARD')) {
+            div.className += ' boarding';
+          } else if (step.includes('ARRIVE')) {
+            div.className += ' arrival';
+          } else if (step.includes('INTERCHANGE')) {
+            div.className += ' interchange';
+          } else if (step.includes('➔')) {
+            div.className += ' stop';
+          }
+
+          div.innerText = step;
+          pathDisplay.appendChild(div);
+        });
+
+        document.getElementById('output').style.display = 'block';
+
+      }).calculateRoute(src, dest, strategy);
+    }
+
+    function showError(message) {
+      const errorAlert = document.getElementById('errorAlert');
+      errorAlert.innerText = '❌ ' + message;
+      errorAlert.style.display = 'block';
+      document.getElementById('output').style.display = 'none';
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('btnText').textContent = '🚀 Find Best Route';
+    }
+
+    // Allow Enter key to search
+    document.addEventListener('keypress', function(event) {
+      if (event.key === 'Enter') {
+        findRoute();
+      }
+    });
+  </script>
+</body>
+</html>
