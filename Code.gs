@@ -61,7 +61,7 @@ function getGraphData() {
 
 // ─────────────────────────────────────────────────────────────
 //  UTILITY FUNCTIONS
-// ─────────────────────────────────���───────────────────────────
+// ─────────────────────────────────────────────────────────────
 
 /**
  * Extracts the physical station name from a node identifier.
@@ -351,13 +351,13 @@ function dijkstraInterchanges(src, dest, adjList, lineTerminals) {
 }
 
 // ─────────────────────────────────────────────────────────────
-//  FORMAT OUTPUT STEPS - CORRECTLY COUNTS ALL LINE CHANGES
+//  FORMAT OUTPUT STEPS - STORE LINES AND COUNT CHANGES CORRECTLY
 //  Converts node path into human-readable instructions with emoji.
 // ─────────────────────────────────────────────────────────────
 
 /**
  * Formats a node path into human-readable step-by-step instructions.
- * Counts ALL actual line changes and calculates total travel time.
+ * Stores line for each node and counts actual line changes.
  * @param {Array} path - Array of node identifiers
  * @param {number} costValue - Total cost (time or interchange count)
  * @param {string} unit - Unit label ("min" or "interchange(s)")
@@ -371,7 +371,6 @@ function formatSteps(path, costValue, unit, adjList, lineTerminals) {
   }
 
   const steps = [];
-  let interchangeCount = 0;
   let totalTravelTime = 0;
 
   if (path.length === 1) {
@@ -384,40 +383,81 @@ function formatSteps(path, costValue, unit, adjList, lineTerminals) {
     };
   }
 
-  // ── Build a detailed path with station names and lines ──
-  const detailedPath = path.map(node => ({
-    node: node,
-    station: getStationName(node),
-    lines: getLineCodes(node),
-    primaryLine: getPrimaryLine(node)
-  }));
+  // ── Store path with line information: array of {node, station, line} ──
+  const pathWithLines = [];
+  let currentLine = getPrimaryLine(path[0]);
 
-  // ── Calculate total travel time by summing all edge weights ──
+  // Find the actual boarding line by looking at the path
   for (let i = 1; i < path.length; i++) {
+    if (getStationName(path[i]) !== getStationName(path[0])) {
+      currentLine = getPrimaryLine(path[i - 1]);
+      break;
+    }
+  }
+
+  pathWithLines.push({
+    node: path[0],
+    station: getStationName(path[0]),
+    line: currentLine
+  });
+
+  // Build the rest of the path with lines
+  for (let i = 1; i < path.length; i++) {
+    const currStation = getStationName(path[i]);
+    const prevStation = getStationName(path[i - 1]);
+
+    // Calculate travel time
     const neighbors = adjList[path[i - 1]] || [];
     const edge = neighbors.find(e => e.nbr === path[i]);
     if (edge) {
       totalTravelTime += edge.weight;
     }
+
+    // Determine the line at this node
+    let nodeLine = getPrimaryLine(path[i]);
+
+    // If same station, check if we need to change lines
+    if (currStation === prevStation) {
+      // This is an interchange station - use the primary line of this node
+      nodeLine = getPrimaryLine(path[i]);
+    } else {
+      // Different station - keep the same line we were on
+      // unless the node doesn't have that line
+      const nodeLines = getLineCodes(path[i]);
+      if (!nodeLines.includes(currentLine)) {
+        // Find compatible line
+        const prevLines = getLineCodes(path[i - 1]);
+        nodeLine = nodeLines.find(l => prevLines.includes(l)) || nodeLine;
+      } else {
+        nodeLine = currentLine;
+      }
+    }
+
+    currentLine = nodeLine;
+    pathWithLines.push({
+      node: path[i],
+      station: currStation,
+      line: nodeLine
+    });
   }
 
-  // ── Determine the line we actually board ──
-  let currentLine = detailedPath[0].primaryLine;
-  let boardingLineFound = false;
+  // ── Count actual line changes by comparing consecutive lines ──
+  let interchangeCount = 0;
+  for (let i = 1; i < pathWithLines.length; i++) {
+    const prevLine = pathWithLines[i - 1].line;
+    const currLine = pathWithLines[i].line;
+    const prevStation = pathWithLines[i - 1].station;
+    const currStation = pathWithLines[i].station;
 
-  for (let i = 1; i < detailedPath.length; i++) {
-    if (detailedPath[i].station !== detailedPath[0].station) {
-      currentLine = detailedPath[i - 1].primaryLine;
-      boardingLineFound = true;
-      break;
+    // Line change happens when: same station but different line
+    if (prevStation === currStation && prevLine !== currLine) {
+      interchangeCount++;
     }
   }
 
-  if (!boardingLineFound) {
-    currentLine = detailedPath[0].primaryLine;
-  }
-
-  // ── Boarding instruction ──
+  // ── Build step-by-step instructions ──
+  currentLine = pathWithLines[0].line;
+  
   const initialDirection = getTrainDirection(
     path[0],
     path[1],
@@ -427,66 +467,46 @@ function formatSteps(path, costValue, unit, adjList, lineTerminals) {
   );
 
   steps.push(
-    `🚉 BOARD at ${detailedPath[0].station} | Line: ${currentLine} | Towards: ${initialDirection}`
+    `🚉 BOARD at ${pathWithLines[0].station} | Line: ${currentLine} | Towards: ${initialDirection}`
   );
 
-  // ── Walk through the path and detect line changes ──
-  for (let i = 1; i < detailedPath.length; i++) {
-    const prev = detailedPath[i - 1];
-    const curr = detailedPath[i];
-    const isLastStop = i === detailedPath.length - 1;
+  // Walk through path and display steps
+  for (let i = 1; i < pathWithLines.length; i++) {
+    const prev = pathWithLines[i - 1];
+    const curr = pathWithLines[i];
+    const isLastStop = (i === pathWithLines.length - 1);
 
-    // ── Check if we're at the same physical station ──
-    if (curr.station === prev.station) {
-      const newLine = curr.primaryLine;
+    if (curr.station === prev.station && curr.line !== prev.line) {
+      // This is an interchange
+      const newLine = curr.line;
+      currentLine = newLine;
 
-      // Only record an interchange if we're actually changing lines
-      if (newLine !== currentLine && currentLine !== "" && newLine !== "") {
-        interchangeCount++;
-        currentLine = newLine;
-
-        // Find the next node at a different physical station for direction
-        let nextDifferentStationNode = null;
-        for (let j = i + 1; j < detailedPath.length; j++) {
-          if (detailedPath[j].station !== curr.station) {
-            nextDifferentStationNode = path[j];
-            break;
-          }
-        }
-
-        const newDirection = isLastStop
-          ? curr.station
-          : (nextDifferentStationNode
-              ? getTrainDirection(path[i], nextDifferentStationNode, newLine, adjList, lineTerminals)
-              : "End of Line");
-
-        steps.push(
-          `⚡ INTERCHANGE at ${curr.station} | Switch from Line ${prev.primaryLine} to Line ${newLine} | Train towards: ${newDirection}`
-        );
-      }
-
-      // If it's the last stop, add arrival message
-      if (isLastStop) {
-        steps.push(`🏁 ARRIVE at ${curr.station}`);
-      }
-    } else {
-      // We're moving to a different physical station
-      if (curr.lines.includes(currentLine)) {
-        // Stay on the same line
-      } else {
-        // Find a compatible line
-        const compatibleLine = curr.lines.find(l => 
-          getLineCodes(prev.node).includes(l)
-        );
-        if (compatibleLine) {
-          currentLine = compatibleLine;
+      // Find next different station for direction
+      let nextDifferentStation = null;
+      for (let j = i + 1; j < pathWithLines.length; j++) {
+        if (pathWithLines[j].station !== curr.station) {
+          nextDifferentStation = pathWithLines[j];
+          break;
         }
       }
 
+      const newDirection = nextDifferentStation
+        ? getTrainDirection(path[i], path[pathWithLines.indexOf(nextDifferentStation)], newLine, adjList, lineTerminals)
+        : "End of Line";
+
+      steps.push(
+        `⚡ INTERCHANGE at ${curr.station} | Switch from Line ${prev.line} to Line ${newLine} | Train towards: ${newDirection}`
+      );
+
+      if (isLastStop) {
+        steps.push(`🏁 ARRIVE at ${curr.station}`);
+      }
+    } else if (curr.station !== prev.station) {
+      // Normal stop at different station
       if (isLastStop) {
         steps.push(`🏁 ARRIVE at ${curr.station}`);
       } else {
-        steps.push(`  ➔ ${curr.station} [Line: ${currentLine}]`);
+        steps.push(`  ➔ ${curr.station} [Line: ${curr.line}]`);
       }
     }
   }
