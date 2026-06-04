@@ -198,6 +198,7 @@ function calculateRoute(src, dest, strategy) {
       return {
         path: [`🏁 You are already at ${getStationName(src)}`],
         metric: "0 min",
+        totalTime: "0 min",
         interchanges: 0
       };
     }
@@ -265,7 +266,7 @@ function dijkstraTime(src, dest, adjList, lineTerminals) {
   }
   rawPath.reverse();
 
-  return formatSteps(rawPath, dist[dest], "min", adjList, lineTerminals);
+  return formatSteps(rawPath, dist[dest], "min", adjList, lineTerminals, true);
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -346,38 +347,45 @@ function dijkstraInterchanges(src, dest, adjList, lineTerminals) {
   statePath.reverse();
 
   const nodePath = statePath.map(s => s.node);
-  return formatSteps(nodePath, bestCost, "interchange(s)", adjList, lineTerminals);
+  return formatSteps(nodePath, bestCost, "interchange(s)", adjList, lineTerminals, false);
 }
 
 // ─────────────────────────────────────────────────────────────
-//  FORMAT OUTPUT STEPS (FIXED - Correctly shows line changes)
+//  FORMAT OUTPUT STEPS - FIXED: Correctly counts ALL line changes
 //  Converts node path into human-readable instructions with emoji.
 // ─────────────────────────────────────────────────────────────
 
 /**
  * Formats a node path into human-readable step-by-step instructions.
- * FIXED: Now correctly tracks line changes at each station.
+ * Counts ALL actual line changes at each station transition.
  * @param {Array} path - Array of node identifiers
  * @param {number} costValue - Total cost (time or interchange count)
  * @param {string} unit - Unit label ("min" or "interchange(s)")
  * @param {Object} adjList - Adjacency list
  * @param {Object} lineTerminals - Line terminal information
- * @returns {Object} Formatted result with path, metric, and interchange count
+ * @param {boolean} isTimeStrategy - True if we're showing travel time
+ * @returns {Object} Formatted result with path, metric, interchanges, and total time
  */
-function formatSteps(path, costValue, unit, adjList, lineTerminals) {
+function formatSteps(path, costValue, unit, adjList, lineTerminals, isTimeStrategy) {
   if (path.length === 0) {
     return { error: "Empty path." };
   }
 
   const steps = [];
   let interchangeCount = 0;
+  let totalTravelTime = 0;
 
   if (path.length === 1) {
     steps.push(`🏁 You are already at ${getStationName(path[0])}`);
-    return { path: steps, metric: "0 " + unit, interchanges: 0 };
+    return { 
+      path: steps, 
+      metric: "0 " + unit, 
+      totalTime: "0 min",
+      interchanges: 0 
+    };
   }
 
-  // ── Build a detailed path with station names and lines ──
+  // ── Build detailed path with station info and line codes ──
   const detailedPath = path.map(node => ({
     node: node,
     station: getStationName(node),
@@ -385,20 +393,26 @@ function formatSteps(path, costValue, unit, adjList, lineTerminals) {
     primaryLine: getPrimaryLine(node)
   }));
 
-  // ── Determine the line we actually board ──
-  let currentLine = detailedPath[0].primaryLine;
-  let boardingLineFound = false;
-
-  for (let i = 1; i < detailedPath.length; i++) {
-    if (detailedPath[i].station !== detailedPath[0].station) {
-      currentLine = detailedPath[i - 1].primaryLine;
-      boardingLineFound = true;
-      break;
+  // ── Calculate total travel time by summing all edge weights ──
+  if (isTimeStrategy) {
+    for (let i = 1; i < path.length; i++) {
+      const neighbors = adjList[path[i - 1]] || [];
+      const edge = neighbors.find(e => e.nbr === path[i]);
+      if (edge) {
+        totalTravelTime += edge.weight;
+      }
     }
   }
 
-  if (!boardingLineFound) {
-    currentLine = detailedPath[0].primaryLine;
+  // ── Determine initial boarding line ──
+  let currentLine = detailedPath[0].primaryLine;
+  
+  // Walk forward to find first different station to determine boarding line
+  for (let i = 1; i < detailedPath.length; i++) {
+    if (detailedPath[i].station !== detailedPath[0].station) {
+      currentLine = detailedPath[i - 1].primaryLine;
+      break;
+    }
   }
 
   // ── Boarding instruction ──
@@ -414,54 +428,51 @@ function formatSteps(path, costValue, unit, adjList, lineTerminals) {
     `🚉 BOARD at ${detailedPath[0].station} | Line: ${currentLine} | Towards: ${initialDirection}`
   );
 
-  // ── Walk through the path and detect line changes ──
+  // ── Walk through path and detect line changes ──
   for (let i = 1; i < detailedPath.length; i++) {
     const prev = detailedPath[i - 1];
     const curr = detailedPath[i];
-    const isLastStop = i === detailedPath.length - 1;
+    const isLastStop = (i === detailedPath.length - 1);
 
-    // ── Check if we're at the same physical station ──
+    // ── Are we at the same physical station? ──
     if (curr.station === prev.station) {
+      // We're at a junction/interchange station
       const newLine = curr.primaryLine;
 
-      // Only record an interchange if we're actually changing lines
+      // Check if we're changing lines
       if (newLine !== currentLine && currentLine !== "" && newLine !== "") {
         interchangeCount++;
         currentLine = newLine;
 
-        // Find the next node at a different physical station for direction
+        // Find the next different station for direction info
+        let nextDifferentStation = null;
         let nextDifferentStationNode = null;
         for (let j = i + 1; j < detailedPath.length; j++) {
           if (detailedPath[j].station !== curr.station) {
+            nextDifferentStation = detailedPath[j].station;
             nextDifferentStationNode = path[j];
             break;
           }
         }
 
-        const newDirection = isLastStop
-          ? curr.station
-          : (nextDifferentStationNode
-              ? getTrainDirection(path[i], nextDifferentStationNode, newLine, adjList, lineTerminals)
-              : "End of Line");
+        const newDirection = nextDifferentStationNode
+          ? getTrainDirection(path[i], nextDifferentStationNode, newLine, adjList, lineTerminals)
+          : "End of Line";
 
         steps.push(
-          `⚡ INTERCHANGE at ${curr.station} | Switch to Line: ${newLine} | Towards: ${newDirection}`
+          `⚡ INTERCHANGE at ${curr.station} | Switch to Line: ${newLine} | Train towards: ${newDirection}`
         );
       }
 
-      // If it's the last stop, add arrival message
       if (isLastStop) {
         steps.push(`🏁 ARRIVE at ${curr.station}`);
       }
     } else {
-      // We're moving to a different physical station
-      if (curr.lines.includes(currentLine)) {
-        // Stay on the same line
-      } else {
-        // Find a compatible line
-        const compatibleLine = curr.lines.find(l => 
-          getLineCodes(prev.node).includes(l)
-        );
+      // We're moving to a different physical station (normal stop)
+      // Verify we're on the right line
+      if (!curr.lines.includes(currentLine)) {
+        // Find compatible line
+        const compatibleLine = curr.lines.find(l => getLineCodes(prev.node).includes(l));
         if (compatibleLine) {
           currentLine = compatibleLine;
         }
@@ -475,9 +486,13 @@ function formatSteps(path, costValue, unit, adjList, lineTerminals) {
     }
   }
 
+  // Format total time
+  const totalTimeText = `${totalTravelTime} min`;
+
   return {
     path: steps,
     metric: `${costValue} ${unit}`,
+    totalTime: totalTimeText,
     interchanges: interchangeCount
   };
 }
