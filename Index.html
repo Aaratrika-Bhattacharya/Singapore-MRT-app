@@ -2,398 +2,693 @@
 <html>
 <head>
   <base target="_top">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css">
-  
+
   <style>
-    * {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    :root {
+      --bg:        #0b0f1a;
+      --surface:   #131929;
+      --surface2:  #1c2540;
+      --border:    #252f4a;
+      --accent:    #e63946;
+      --accent2:   #f4a261;
+      --green:     #2ec4b6;
+      --text:      #e8eaf6;
+      --muted:     #6b7a99;
+      --card-r:    14px;
+      --mono:      'Space Mono', monospace;
+      --sans:      'DM Sans', sans-serif;
     }
-    
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
     body {
-      padding: 30px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
       min-height: 100vh;
+      padding: 28px 16px 60px;
     }
-    
-    .card {
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-      border: none;
-      border-radius: 12px;
+
+    /* ── HEADER ── */
+    .app-header {
+      max-width: 760px;
+      margin: 0 auto 32px;
+      display: flex;
+      align-items: flex-end;
+      gap: 16px;
     }
-    
-    .card-header {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      border-radius: 12px 12px 0 0 !important;
-      padding: 20px;
+    .header-icon {
+      font-size: 48px;
+      line-height: 1;
     }
-    
-    .card-header h2 {
-      margin: 0;
-      font-weight: 700;
+    .header-title {
       font-size: 28px;
-    }
-    
-    .form-label {
-      font-weight: 600;
-      color: #2c3e50;
-      margin-bottom: 8px;
-    }
-    
-    .form-control, .form-select {
-      border-radius: 8px;
-      border: 2px solid #e0e0e0;
-      padding: 10px 12px;
-      font-size: 15px;
-      transition: all 0.3s ease;
-    }
-    
-    .form-control:focus, .form-select:focus {
-      border-color: #667eea;
-      box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
-    }
-    
-    .select2-container--bootstrap-5 .select2-selection {
-      border-radius: 8px;
-      border: 2px solid #e0e0e0 !important;
-      height: auto;
-      padding: 4px;
-    }
-    
-    .select2-container--bootstrap-5 .select2-selection--single {
-      min-height: 40px;
-    }
-    
-    .select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered {
-      padding: 6px 0;
-      line-height: 1.5;
-    }
-    
-    .select2-container--bootstrap-5 .select2-selection--single .select2-selection__arrow {
-      top: 6px;
-    }
-    
-    .btn-primary {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      border: none;
-      border-radius: 8px;
-      padding: 12px 24px;
-      font-weight: 600;
-      font-size: 16px;
-      transition: all 0.3s ease;
-      margin-top: 10px;
-    }
-    
-    .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 12px rgba(102, 126, 234, 0.4);
-      background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
-    }
-    
-    .btn-primary:active {
-      transform: translateY(0);
-    }
-    
-    .route-step {
-      padding: 12px 15px;
-      border-left: 4px solid #0d6efd;
-      margin-bottom: 8px;
-      background: #f8f9fa;
-      border-radius: 6px;
-      font-size: 15px;
-      line-height: 1.6;
-    }
-    
-    .route-step.boarding {
-      border-left-color: #28a745;
-      background: #e8f5e9;
-      font-weight: 600;
-    }
-    
-    .route-step.arrival {
-      border-left-color: #dc3545;
-      background: #ffebee;
-      font-weight: 600;
-    }
-    
-    .route-step.interchange {
-      border-left-color: #ffc107;
-      background: #fff3cd;
-      font-weight: 600;
-    }
-    
-    .route-step.stop {
-      border-left-color: #17a2b8;
-      background: #e1f5fe;
-    }
-    
-    .summary-box {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 15px 20px;
-      border-radius: 8px;
-      margin-bottom: 20px;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 15px;
-    }
-    
-    .summary-item {
-      text-align: center;
-    }
-    
-    .summary-item-value {
-      font-size: 24px;
       font-weight: 700;
+      letter-spacing: -0.5px;
     }
-    
-    .summary-item-label {
+    .header-sub {
       font-size: 13px;
-      opacity: 0.9;
+      color: var(--muted);
+      font-family: var(--mono);
       margin-top: 4px;
     }
-    
-    .output-title {
-      color: #2c3e50;
-      font-weight: 700;
-      margin-bottom: 15px;
-      font-size: 20px;
+
+    /* ── SEARCH CARD ── */
+    .search-card {
+      max-width: 760px;
+      margin: 0 auto 24px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--card-r);
+      padding: 28px;
     }
-    
-    #output {
-      animation: slideIn 0.4s ease-out;
+
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 36px 1fr;
+      gap: 12px;
+      align-items: end;
+      margin-bottom: 20px;
     }
-    
-    @keyframes slideIn {
-      from {
-        opacity: 0;
-        transform: translateY(10px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+    .field-group label {
+      display: block;
+      font-size: 11px;
+      font-family: var(--mono);
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
     }
-    
-    .loading {
-      display: none;
-      text-align: center;
-      margin-top: 15px;
-    }
-    
-    .spinner-border {
-      color: #667eea;
-    }
-    
-    .error-alert {
-      background: #ffebee;
-      border: 2px solid #dc3545;
-      color: #c62828;
-      padding: 15px;
+    .swap-btn {
+      background: var(--surface2);
+      border: 1px solid var(--border);
       border-radius: 8px;
-      margin-top: 15px;
+      color: var(--muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 42px;
+      transition: all .2s;
+      font-size: 18px;
+    }
+    .swap-btn:hover { background: var(--border); color: var(--text); }
+
+    /* Select2 dark theme */
+    .select2-container--bootstrap-5 .select2-selection {
+      background: var(--surface2) !important;
+      border: 1px solid var(--border) !important;
+      border-radius: 8px !important;
+      color: var(--text) !important;
+      min-height: 42px !important;
+    }
+    .select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered {
+      color: var(--text) !important;
+      padding: 8px 12px !important;
+      line-height: 1.4 !important;
+    }
+    .select2-container--bootstrap-5 .select2-selection--single .select2-selection__arrow {
+      top: 8px !important;
+    }
+    .select2-container--bootstrap-5 .select2-selection--single .select2-selection__arrow b {
+      border-color: var(--muted) transparent transparent !important;
+    }
+    .select2-dropdown {
+      background: var(--surface2) !important;
+      border: 1px solid var(--border) !important;
+    }
+    .select2-results__option {
+      color: var(--text) !important;
+    }
+    .select2-results__option--highlighted {
+      background: var(--accent) !important;
+      color: #fff !important;
+    }
+    .select2-search__field {
+      background: var(--bg) !important;
+      border: 1px solid var(--border) !important;
+      color: var(--text) !important;
+      border-radius: 6px !important;
+    }
+
+    .find-btn {
+      width: 100%;
+      background: var(--accent);
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      font-family: var(--sans);
+      font-size: 15px;
+      font-weight: 600;
+      padding: 12px;
+      cursor: pointer;
+      transition: all .2s;
+      letter-spacing: 0.3px;
+    }
+    .find-btn:hover { background: #c1121f; transform: translateY(-1px); }
+    .find-btn:active { transform: translateY(0); }
+    .find-btn:disabled { background: var(--border); color: var(--muted); cursor: not-allowed; transform: none; }
+
+    /* ── LOADING ── */
+    .loading-wrap {
+      max-width: 760px;
+      margin: 0 auto;
+      text-align: center;
+      padding: 40px;
       display: none;
     }
+    .dot-pulse {
+      display: inline-flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .dot-pulse span {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: pulse 1.2s ease-in-out infinite;
+    }
+    .dot-pulse span:nth-child(2) { animation-delay: .2s; }
+    .dot-pulse span:nth-child(3) { animation-delay: .4s; }
+    @keyframes pulse { 0%,80%,100% { opacity:.2; transform: scale(.8); } 40% { opacity:1; transform: scale(1); } }
+    .loading-label { font-family: var(--mono); font-size: 13px; color: var(--muted); }
+
+    /* ── ERROR ── */
+    .error-wrap {
+      max-width: 760px;
+      margin: 0 auto;
+      background: rgba(230,57,70,.12);
+      border: 1px solid var(--accent);
+      border-radius: var(--card-r);
+      padding: 16px 20px;
+      display: none;
+      color: #ff6b75;
+      font-size: 14px;
+    }
+
+    /* ── ROUTES SECTION ── */
+    .routes-section {
+      max-width: 760px;
+      margin: 0 auto;
+      display: none;
+    }
+    .section-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 14px;
+    }
+
+    /* ── ROUTE CARD ── */
+    .route-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--card-r);
+      padding: 20px;
+      margin-bottom: 12px;
+      cursor: pointer;
+      transition: all .2s;
+      position: relative;
+      overflow: hidden;
+    }
+    .route-card:hover {
+      border-color: var(--accent);
+      background: var(--surface2);
+    }
+    .route-card.selected {
+      border-color: var(--accent);
+      background: var(--surface2);
+    }
+    .route-card::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 4px;
+      background: var(--border);
+      transition: background .2s;
+    }
+    .route-card.selected::before,
+    .route-card:hover::before { background: var(--accent); }
+
+    /* ── EASIEST card gets a teal left-border ── */
+    .route-card.easiest::before { background: var(--green); }
+    .route-card.easiest:hover::before,
+    .route-card.easiest.selected::before { background: var(--green); }
+
+    .route-card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .route-badge {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--muted);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 3px 8px;
+      flex-shrink: 0;
+    }
+    .route-card.selected .route-badge {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+    .route-stats {
+      display: flex;
+      gap: 20px;
+      flex: 1;
+    }
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .stat-value {
+      font-size: 22px;
+      font-weight: 700;
+      font-family: var(--mono);
+      color: var(--text);
+      line-height: 1;
+    }
+    .stat-value.highlight { color: var(--accent2); }
+    .stat-label {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 3px;
+      white-space: nowrap;
+    }
+    .stat-divider {
+      width: 1px;
+      background: var(--border);
+      align-self: stretch;
+      margin: 2px 0;
+    }
+    .route-line-pills {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+    .line-pill {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 20px;
+      color: #fff;
+    }
+    .line-arrow {
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .select-hint {
+      font-size: 12px;
+      color: var(--muted);
+      text-align: right;
+      margin-top: 10px;
+    }
+    .route-card.selected .select-hint { color: var(--accent); }
+
+    /* ── LINE COLORS ── */
+    .line-EW { background: #009645; }
+    .line-NS { background: #d42e12; }
+    .line-NE { background: #9900aa; }
+    .line-CC { background: #fa9e0d; }
+    .line-DT { background: #005ec4; }
+    .line-TE { background: #9d5b25; }
+    .line-BP { background: #748477; }
+    .line-SE, .line-SW, .line-PE, .line-PW { background: #748477; }
+    .line-CG { background: #d42e12; }
+    .line-CE { background: #fa9e0d; }
+    .line-default { background: var(--muted); }
+
+    /* ── STEP-BY-STEP PANEL ── */
+    .steps-panel {
+      max-width: 760px;
+      margin: 24px auto 0;
+      display: none;
+    }
+    .steps-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .steps-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .steps-meta {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .step-item {
+      display: flex;
+      gap: 14px;
+      margin-bottom: 4px;
+      position: relative;
+    }
+    .step-line {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex-shrink: 0;
+      width: 28px;
+    }
+    .step-dot {
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      border: 2px solid var(--muted);
+      background: var(--bg);
+      flex-shrink: 0;
+      margin-top: 4px;
+    }
+    .step-dot.board   { border-color: var(--green); background: var(--green); }
+    .step-dot.arrive  { border-color: var(--accent); background: var(--accent); }
+    .step-dot.interchange { border-color: var(--accent2); background: var(--accent2); width: 16px; height: 16px; }
+    .step-dot.stop    { border-color: var(--border); background: var(--surface); }
+    .step-connector {
+      flex: 1;
+      width: 2px;
+      background: var(--border);
+      min-height: 20px;
+      margin: 2px 0;
+    }
+    .step-connector.active-line { background: var(--muted); }
+    .step-text {
+      flex: 1;
+      padding: 2px 0 18px;
+    }
+    .step-text.board {
+      background: rgba(46,196,182,.07);
+      border: 1px solid rgba(46,196,182,.2);
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin-bottom: 4px;
+    }
+    .step-text.arrive {
+      background: rgba(230,57,70,.07);
+      border: 1px solid rgba(230,57,70,.2);
+      border-radius: 8px;
+      padding: 10px 14px;
+    }
+    .step-text.interchange {
+      background: rgba(244,162,97,.07);
+      border: 1px solid rgba(244,162,97,.25);
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin-bottom: 4px;
+    }
+    .step-main {
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 1.5;
+    }
+    .step-main.stop { font-weight: 400; color: var(--muted); font-size: 13px; }
+    .step-sub {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    /* Animations */
+    .fade-in {
+      animation: fadeIn .35s ease both;
+    }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
   </style>
 </head>
 <body>
-  <div class="container" style="max-width: 750px;">
-    <div class="card">
-      <div class="card-header">
-        <h2>🇸🇬 Singapore MRT Navigator</h2>
+
+  <!-- HEADER -->
+  <div class="app-header">
+    <div class="header-icon">🚇</div>
+    <div>
+      <div class="header-title">MRT Navigator</div>
+      <div class="header-sub">Singapore Mass Rapid Transit • Route Planner</div>
+    </div>
+  </div>
+
+  <!-- SEARCH CARD -->
+  <div class="search-card">
+    <div class="field-row">
+      <div class="field-group">
+        <label>From</label>
+        <select id="src" style="width:100%">
+          <option value="">Select station…</option>
+        </select>
       </div>
-      
-      <div class="card-body p-4">
-        <div class="mb-4">
-          <label class="form-label">📍 Source Station:</label>
-          <select id="src" class="form-select form-select-lg" style="width: 100%;">
-            <option value="">-- Select Source Station --</option>
-          </select>
-        </div>
-        
-        <div class="mb-4">
-          <label class="form-label">🎯 Destination Station:</label>
-          <select id="dest" class="form-select form-select-lg" style="width: 100%;">
-            <option value="">-- Select Destination Station --</option>
-          </select>
-        </div>
-        
-        <div class="mb-4">
-          <label class="form-label">⚙️ Routing Strategy:</label>
-          <select id="strategy" class="form-select">
-            <option value="time">⏱️ Shortest Travel Time</option>
-            <option value="interchanges">🔄 Minimum Interchanges</option>
-          </select>
-        </div>
-        
-        <button onclick="findRoute()" class="btn btn-primary w-100 btn-lg">
-          <span id="btnText">🚀 Find Best Route</span>
-        </button>
-        
-        <div class="loading" id="loading">
-          <div class="spinner-border" role="status">
-            <span class="visually-hidden">Loading...</span>
-          </div>
-          <p class="mt-2" style="color: #667eea; font-weight: 600;">Calculating route...</p>
-        </div>
-        
-        <div class="error-alert" id="errorAlert"></div>
-        
-        <div id="output" style="display: none; margin-top: 30px;">
-          <h4 class="output-title">📋 Optimal Route Summary</h4>
-          
-          <div class="summary-box">
-            <div class="summary-item">
-              <div class="summary-item-value" id="metric">--</div>
-              <div class="summary-item-label">Travel Time</div>
-            </div>
-            <div class="summary-item">
-              <div class="summary-item-value" id="changes">0</div>
-              <div class="summary-item-label">Line Changes</div>
-            </div>
-          </div>
-          
-          <h5 style="color: #2c3e50; font-weight: 700; margin-bottom: 12px;">Step-by-Step Directions:</h5>
-          <div id="pathDisplay"></div>
-        </div>
+      <button class="swap-btn" onclick="swapStations()" title="Swap">⇄</button>
+      <div class="field-group">
+        <label>To</label>
+        <select id="dest" style="width:100%">
+          <option value="">Select station…</option>
+        </select>
       </div>
     </div>
+    <button class="find-btn" id="findBtn" onclick="findRoutes()">
+      Find Routes
+    </button>
+  </div>
+
+  <!-- LOADING -->
+  <div class="loading-wrap" id="loadingWrap">
+    <div class="dot-pulse"><span></span><span></span><span></span></div>
+    <div class="loading-label">Calculating all routes…</div>
+  </div>
+
+  <!-- ERROR -->
+  <div class="error-wrap" id="errorWrap"></div>
+
+  <!-- ROUTES LIST -->
+  <div class="routes-section" id="routesSection">
+    <div class="section-label" id="routesLabel">Available Routes — select one to see step-by-step</div>
+    <div id="routeCards"></div>
+  </div>
+
+  <!-- STEPS PANEL -->
+  <div class="steps-panel" id="stepsPanel">
+    <div class="steps-header">
+      <div class="steps-title" id="stepsTitle">Route Details</div>
+      <div class="steps-meta" id="stepsMeta"></div>
+    </div>
+    <div id="stepsContainer"></div>
   </div>
 
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-  
+
   <script>
-    // Load station list on page load
+    // ── LINE COLOR MAP ───────────────────────────────────────
+    const LINE_COLORS = {
+      EW:'#009645', NS:'#d42e12', NE:'#9900aa', CC:'#fa9e0d',
+      DT:'#005ec4', TE:'#9d5b25', BP:'#748477', CG:'#d42e12',
+      CE:'#fa9e0d'
+    };
+
+    function lineColor(code) {
+      return LINE_COLORS[code] || '#748477';
+    }
+
+    // ── LOAD STATIONS ────────────────────────────────────────
     document.addEventListener('DOMContentLoaded', function() {
-      loadStations();
-    });
-
-    function loadStations() {
       google.script.run.withSuccessHandler(function(result) {
-        if (result.error) {
-          showError(result.error);
-          return;
-        }
-
+        if (result.error) { showError(result.error); return; }
         const stations = result.stations || [];
-        const srcSelect = document.getElementById('src');
-        const destSelect = document.getElementById('dest');
 
-        // Clear existing options (except the placeholder)
-        srcSelect.innerHTML = '<option value="">-- Select Source Station --</option>';
-        destSelect.innerHTML = '<option value="">-- Select Destination Station --</option>';
-
-        // Add station options
-        stations.forEach(station => {
-          const option1 = document.createElement('option');
-          option1.value = station;
-          option1.textContent = station;
-          srcSelect.appendChild(option1);
-
-          const option2 = document.createElement('option');
-          option2.value = station;
-          option2.textContent = station;
-          destSelect.appendChild(option2);
+        ['src','dest'].forEach(id => {
+          const sel = document.getElementById(id);
+          sel.innerHTML = '<option value="">Select station…</option>';
+          stations.forEach(s => {
+            const o = document.createElement('option');
+            o.value = o.textContent = s;
+            sel.appendChild(o);
+          });
         });
 
-        // Initialize Select2 with bootstrap theme
-        $('#src').select2({
+        $('#src, #dest').select2({
           theme: 'bootstrap-5',
-          placeholder: '-- Select Source Station --',
-          allowClear: true,
-          width: '100%'
-        });
-
-        $('#dest').select2({
-          theme: 'bootstrap-5',
-          placeholder: '-- Select Destination Station --',
+          placeholder: 'Search stations…',
           allowClear: true,
           width: '100%'
         });
 
       }).getGraphData();
+    });
+
+    // ── SWAP ─────────────────────────────────────────────────
+    function swapStations() {
+      const sv = $('#src').val(), dv = $('#dest').val();
+      $('#src').val(dv).trigger('change');
+      $('#dest').val(sv).trigger('change');
     }
 
-    function findRoute() {
-      const src = document.getElementById('src').value;
+    // ── FIND ROUTES ──────────────────────────────────────────
+    function findRoutes() {
+      const src  = document.getElementById('src').value;
       const dest = document.getElementById('dest').value;
-      const strategy = document.getElementById('strategy').value;
 
-      // Validation
-      if (!src || !dest) {
-        showError('Please select both source and destination stations.');
-        return;
-      }
+      if (!src || !dest) { showError('Please select both stations.'); return; }
+      if (src === dest)  { showError('Source and destination must be different.'); return; }
 
-      if (src === dest) {
-        showError('Source and destination must be different stations.');
-        return;
-      }
+      hide('routesSection'); hide('stepsPanel'); hide('errorWrap');
+      show('loadingWrap');
+      document.getElementById('findBtn').disabled = true;
 
-      // Show loading, hide previous output
-      document.getElementById('output').style.display = 'none';
-      document.getElementById('errorAlert').style.display = 'none';
-      document.getElementById('loading').style.display = 'block';
-      document.getElementById('btnText').textContent = '⏳ Calculating...';
-
-      // Call the server-side function
       google.script.run.withSuccessHandler(function(result) {
-        document.getElementById('loading').style.display = 'none';
-        document.getElementById('btnText').textContent = '🚀 Find Best Route';
+        hide('loadingWrap');
+        document.getElementById('findBtn').disabled = false;
 
-        if (result.error) {
-          showError(result.error);
-          return;
+        if (result.error) { showError(result.error); return; }
+        renderRoutes(result.routes);
+
+      }).calculateRoutes(src, dest);
+    }
+
+    // ── RENDER ROUTE CARDS ───────────────────────────────────
+    let allRoutes = [];
+
+    function renderRoutes(routes) {
+      allRoutes = routes;
+      const container = document.getElementById('routeCards');
+      container.innerHTML = '';
+
+      document.getElementById('routesLabel').textContent =
+        `${routes.length} Route${routes.length > 1 ? 's' : ''} Found — select to view step-by-step`;
+
+      routes.forEach((r, idx) => {
+        const card = document.createElement('div');
+        card.className = 'route-card fade-in' + (r.isEasiest ? ' easiest' : '');
+        card.style.animationDelay = (idx * .06) + 's';
+        card.dataset.idx = idx;
+        card.onclick = () => selectRoute(idx);
+
+        // Build line pills HTML
+        const lineParts = r.lineSummary.split(' → ');
+        const pillsHtml = lineParts.map((l, i) => {
+          const color = lineColor(l);
+          let h = `<span class="line-pill" style="background:${color}">${l}</span>`;
+          if (i < lineParts.length - 1) h += `<span class="line-arrow">→</span>`;
+          return h;
+        }).join('');
+
+        // ── Badges: FASTEST and/or EASIEST ──
+        let badgesHtml = '';
+        if (idx === 0) {
+          badgesHtml += '<span style="font-size:11px;color:var(--green);font-family:var(--mono);margin-left:6px">✦ FASTEST</span>';
+        }
+        if (r.isEasiest) {
+          badgesHtml += '<span style="font-size:11px;color:var(--green);font-family:var(--mono);margin-left:6px">✦ EASIEST</span>';
         }
 
-        // Display results
-        document.getElementById('metric').innerText = result.metric;
-        document.getElementById('changes').innerText = result.interchanges;
+        card.innerHTML = `
+          <div class="route-card-top">
+            <span class="route-badge">Route ${r.routeNum}</span>
+            <div class="route-stats">
+              <div class="stat-item">
+                <div class="stat-value highlight">${r.totalTimeMinutes}</div>
+                <div class="stat-label">minutes</div>
+              </div>
+              <div class="stat-divider"></div>
+              <div class="stat-item">
+                <div class="stat-value">${r.interchanges}</div>
+                <div class="stat-label">change${r.interchanges !== 1 ? 's' : ''}</div>
+              </div>
+            </div>
+            ${badgesHtml}
+          </div>
+          <div class="route-line-pills">${pillsHtml}</div>
+          <div class="select-hint">Tap to view step-by-step directions →</div>
+        `;
 
-        const pathDisplay = document.getElementById('pathDisplay');
-        pathDisplay.innerHTML = '';
+        container.appendChild(card);
+      });
 
-        result.path.forEach(function(step) {
-          const div = document.createElement('div');
-          div.className = 'route-step';
-
-          // Classify step based on content
-          if (step.includes('BOARD')) {
-            div.className += ' boarding';
-          } else if (step.includes('ARRIVE')) {
-            div.className += ' arrival';
-          } else if (step.includes('INTERCHANGE')) {
-            div.className += ' interchange';
-          } else if (step.includes('➔')) {
-            div.className += ' stop';
-          }
-
-          div.innerText = step;
-          pathDisplay.appendChild(div);
-        });
-
-        document.getElementById('output').style.display = 'block';
-
-      }).calculateRoute(src, dest, strategy);
+      show('routesSection');
+      hide('stepsPanel');
     }
 
-    function showError(message) {
-      const errorAlert = document.getElementById('errorAlert');
-      errorAlert.innerText = '❌ ' + message;
-      errorAlert.style.display = 'block';
-      document.getElementById('output').style.display = 'none';
-      document.getElementById('loading').style.display = 'none';
-      document.getElementById('btnText').textContent = '🚀 Find Best Route';
+    // ── SELECT ROUTE → SHOW STEPS ────────────────────────────
+    function selectRoute(idx) {
+      // Highlight selected card
+      document.querySelectorAll('.route-card').forEach((c, i) => {
+        c.classList.toggle('selected', i === idx);
+      });
+
+      const route = allRoutes[idx];
+      renderSteps(route);
     }
 
-    // Allow Enter key to search
-    document.addEventListener('keypress', function(event) {
-      if (event.key === 'Enter') {
-        findRoute();
-      }
+    function renderSteps(route) {
+      document.getElementById('stepsTitle').textContent =
+        `Route ${route.routeNum} — Step-by-Step`;
+      document.getElementById('stepsMeta').textContent =
+        `${route.totalTimeMinutes} min · ${route.interchanges} interchange${route.interchanges !== 1 ? 's' : ''}`;
+
+      const container = document.getElementById('stepsContainer');
+      container.innerHTML = '';
+
+      route.steps.forEach((step, i) => {
+        const isLast = i === route.steps.length - 1;
+        const wrapper = document.createElement('div');
+        wrapper.className = 'step-item fade-in';
+        wrapper.style.animationDelay = (i * .04) + 's';
+
+        const type = step.type;
+        let dotClass = type; // board/arrive/interchange/stop
+
+        // Build connector (all except last get a line below)
+        const connHtml = isLast ? '' :
+          `<div class="step-connector ${type === 'stop' ? '' : 'active-line'}"></div>`;
+
+        wrapper.innerHTML = `
+          <div class="step-line">
+            <div class="step-dot ${dotClass}"></div>
+            ${connHtml}
+          </div>
+          <div class="step-text ${type}">
+            <div class="step-main ${type === 'stop' ? 'stop' : ''}">${step.text.trim()}</div>
+          </div>
+        `;
+
+        container.appendChild(wrapper);
+      });
+
+      show('stepsPanel');
+      // Scroll to steps
+      setTimeout(() => {
+        document.getElementById('stepsPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 50);
+    }
+
+    // ── HELPERS ──────────────────────────────────────────────
+    function show(id) { document.getElementById(id).style.display = 'block'; }
+    function hide(id) { document.getElementById(id).style.display = 'none'; }
+
+    function showError(msg) {
+      const el = document.getElementById('errorWrap');
+      el.textContent = '⚠ ' + msg;
+      show('errorWrap');
+      hide('loadingWrap');
+      document.getElementById('findBtn').disabled = false;
+    }
+
+    document.addEventListener('keypress', e => {
+      if (e.key === 'Enter') findRoutes();
     });
   </script>
 </body>
